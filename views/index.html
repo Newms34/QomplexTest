@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guild Wars 2 Price Checker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.1/css/bulma.min.css" integrity="sha512-ZRv40llEogRmoWgZwnsqke3HNzJ0kiI0+pcMgiz2bxO6Ew1DVBtWjVn0qjrXdT3+u+pSN36gLgmJiiQ3cQtyzA==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" integrity="sha512-5A8nwdMOWrSz20fDsjczgUidUBR8liPYU+WymTZP1lmY9G6Oc7HlZv156XqnsgNUzTyMefFTcsFH/tnJE/+xBg==" crossorigin="anonymous" />
+    <link rel="stylesheet" href="./css/styles.css">
+</head>
+
+<body>
+    <div class='is-fullheight' id=main v-bind:style='bgStyle'>
+        <div class="columns is-fullwidth">
+            <div class="column is-one-fifth"></div>
+            <div class="column is-three-fifths">
+                <div class="panel is-grey has-background-white">
+                    <div class="panel-heading">Guild Wars 2 Recipe Tool</div>
+                    <div class="panel-block is-blocky is-fullwidth">
+                        <br>
+                        <div class="is-fullwidth message has-text-centered columns is-multiline blocky">
+                            <div class="column is-one-fifth notification has-background-grey has-text-white">
+                                Item Search:
+                            </div>
+                            <div class="column is-four-fifths">
+
+                                <input type="text" class="input" v-model='searchTerm' v-on:keyup='newSearch()' placeholder='Enter a term to search for'>
+                            </div>
+                            <div class="column is-one-fifth">
+                                <button v-if='page>1' class="button is-link is-pulled-left" v-on:click='changePage()'><i class="fa fa-arrow-left"></i>&nbsp;Prev</button>
+                            </div>
+                            <div class="column is-three-fifths">
+                                Page: {{page}} of {{lastPage}}
+                            </div>
+                            <div class="column is-one-fifth">
+                                <button v-if='page<lastPage' class="button is-link is-pulled-right" v-on:click='changePage(true)'>Next&nbsp;<i class="fa fa-arrow-right"></i></button>
+                            </div>
+
+                        </div>
+                        <table class="table is-fullwidth">
+                            <thead>
+                                <tr>
+                                    <th>&nbsp;</th>
+                                    <th>Item Name</th>
+                                    <th>Sell Price</th>
+                                    <th>Buy Price</th>
+                                    <th>Get Recipes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-if='searchStatus===2'>
+                                    <td class="is-italic has-text-centered" colspan='5'>No items!</td>
+                                </tr>
+                                <tr v-if='searchStatus===0'>
+                                    <td class="is-italic has-text-centered" colspan='5'>
+                                        <progress class="progress is-small" max="100">5%</progress>
+                                    </td>
+                                </tr>
+                                <tr v-for='item in items' :key='item.id'>
+                                    <td>
+                                        <img v-bind:src="item.img" class='icon-img' alt="" />
+                                    </td>
+                                    <td>{{item.name}}</td>
+                                    <td v-html = 'item.sell.gw2Num()'></td>
+                                    <td v-html = 'item.buy.gw2Num()'></td>
+                                    <td>
+                                        <button class="button is-info" v-on:click="getRecipes(item)"><i class="fa fa-birthday-cake"></i>&nbsp;Result</button>
+                                        <button class="button is-link" v-on:click="getRecipes(item,true)"><i class="fa fa-list"></i>&nbsp;Ingredient</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal" v-bind:class='{"is-active":recipeBox.show}'>
+            <div class="modal-background"></div>
+            <div class="modal-content wide-modal">
+                <div class="panel has-background-white">
+                    <div class="panel-heading has-background-grey-darker has-text-white">
+                        Recipes
+                        <button class="is-pulled-right button is-dark" v-on:click='recipeBox.show=false'><i class="fa fa-times"></i></button>
+                    </div>
+                    <div class="panel-block blocky">
+                        <div class="loader is-size-1" v-if='loadingRecipes'></div>
+                        <table class="table is-fullwidth" v-if='recipeBox.recipes && !loadingRecipes'>
+                            <thead>
+                                <tr>
+                                    <th>&nbsp;</th>
+                                    <th>Output</th>
+                                    <th>Sell</th>
+                                    <th>Buy</th>
+                                    <th>Ingredients</th>
+                                    <th>Profit (min)</th>
+                                    <th>Profit (max)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for='rec in recipeBox.recipes'>
+                                    <td>
+                                        <img v-bind:src="rec.output.img" class='icon-img' alt="" />
+                                    </td>
+                                    <td>
+                                        {{rec.output.name}}
+                                    </td>
+                                    <td v-html = 'rec.output.sell.gw2Num()'></td>
+                                    <td v-html = 'rec.output.buy.gw2Num()'></td>
+                                    <td>
+                                        <ul>
+                                            <li v-for='ing in rec.ingrs'>{{ing.count}} <i class="fa fa-times"></i> <img v-bind:src="ing.img" class='tiny-img' alt="" />{{ing.name}} (<span v-html='ing.sell.gw2Num()+" to  "+ing.buy.gw2Num()'></span> ea)</li>
+                                        </ul>
+                                    </td>
+                                    <td v-html='profit(rec).gw2Num()'></td>
+                                    <td v-html='profit(rec,true).gw2Num()'></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.12/vue.min.js" integrity="sha512-BKbSR+cfyxLdMAsE0naLReFSLg8/pjbgfxHh/k/kUC82Hy7r6HtR5hLhobaln2gcTvzkyyehrdREdjpsQwy2Jw==" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/bulmabox@7.0.10/bulmabox.min.js"></script>
+    <script src="./js/all.min.js"></script>
+</body>
+
+</html>
