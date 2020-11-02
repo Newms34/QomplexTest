@@ -65,8 +65,8 @@
                                     <td v-html = 'item.sell.gw2Num()'></td>
                                     <td v-html = 'item.buy.gw2Num()'></td>
                                     <td>
-                                        <button class="button is-info" v-on:click="getRecipes(item)"><i class="fa fa-birthday-cake"></i>&nbsp;Result</button>
-                                        <button class="button is-link" v-on:click="getRecipes(item,true)"><i class="fa fa-list"></i>&nbsp;Ingredient</button>
+                                        <button v-bind:title='"Get all recipes that produce "+item.name+"as a result."' class="button is-info" v-on:click="getRecipes(item)"><i class="fa fa-birthday-cake"></i>&nbsp;Result</button>
+                                        <button v-bind:title='"Get all recipes that use "+item.name+"as an ingredient"' class="button is-link" v-on:click="getRecipes(item,true)"><i class="fa fa-list"></i>&nbsp;Ingredient</button>
                                     </td>
                                 </tr>
                             </tbody>

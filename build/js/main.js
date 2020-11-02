@@ -107,7 +107,35 @@ const v = new Vue({
         }
     },
     created() {
-        this.getBg()
+        this.getBg();
+        if(!localStorage.gw2PricerShowedHelp){
+            localStorage.gw2PricerShowedHelp = true;
+            bulmabox.alert('Guild Wars 2 Recipe Tool',`Hi! Welcome to the Guild Wars 2 Recipe Checker Tool!
+            <div class='content'>
+                <hr>
+                <div class="is-size-4">
+                    What It Is:
+                </div>
+                The Guild Wars 2 Recipe Checker Tool (GW2RCT) is a tool for the MMO Guild Wars 2 (by ArenaNet, LLC). It allows you to search for an item and then obtain all recipes for that item. 
+                <hr>
+                <div class="is-size-4">
+                    How to Use:
+                </div>
+                Usage is pretty simple. Just:
+                <ol>
+                    <li>Enter some search terms in the Item Search box.</li>
+                    <li>Wait for your results to (hopefully!) show up.</li>
+                    <li>Pick an item from the list of returned results</li>
+                    <li>Now, decide whether you want that item to be an <i>ingredient</i> or a <i>result</i> of a recipe. <br>For example, Iron Ingots are the <i>result</i> of a recipe involving Iron Ore, but they're also an <i>ingredient</i> of a recipe to make Iron Plated Dowels</li>
+                    <li>Click either Result or Ingredient as appropriate</li>
+                    <li>View your recipes! Take particular note of the Profit columns.</li>
+                </ol>
+                <hr/>
+                Have fun!
+                <br/>-Dave
+            </div>
+            `)
+        }
     },
     computed: {
         bgStyle() {
